@@ -1,0 +1,51 @@
+public class PhotoManager {
+    
+    LinkedList<Photo> photos;
+
+    // Constructor
+    public PhotoManager() {
+        photos = new LinkedList<Photo>();
+    }
+    
+    // Add a photo
+    public void addPhoto(Photo p) {
+        if (!IsPhototAvailable(p.getPath(), photos)) {
+            photos.insert(p);
+        }
+    }
+    
+    private boolean IsPhototAvailable(String p, LinkedList<Photo> List) {
+        if (List.empty()) 
+            return false;
+
+        List.findFirst();
+        do {
+            if (List.retrieve().getPath().equalsIgnoreCase(p))
+                return true;
+            List.findNext();
+        } while (!List.last());
+
+        return List.retrieve().getPath().equalsIgnoreCase(p);
+    }
+
+    // Delete a photo
+    public void deletePhoto(String path) {
+        if (photos.empty() || !IsPhototAvailable(path, photos))
+            return;
+
+        photos.findFirst();
+        while (true) {
+            if (photos.retrieve().getPath().equalsIgnoreCase(path)) {
+                photos.remove();
+                break;
+            }
+            if (photos.last()) break;
+            photos.findNext();
+        }
+    }
+
+    // Return all managed photos
+    public LinkedList<Photo> getPhotos() {
+        return photos;
+    }
+}
