@@ -1,39 +1,33 @@
-import java.util.LinkedList;
-
 public class InvAlbum {
     private String name;
     private String condition;
     private InvIndexPhotoManager invmanager;
-    private int numberOfComparisons;
+    private int NbComps;
 
     // Constructor
     public InvAlbum(String name, String condition, InvIndexPhotoManager manager) {
         this.name = name;
         this.condition = condition;
         this.invmanager = manager;
-        numberOfComparisons = 0;
+        NbComps = 0;
     }
 
-    // Return the name of the album
     public String getName() {
         return name;
     }
 
-    // Return the condition associated with the album
     public String getCondition() {
         return condition;
     }
 
-    // Return the manager
     public InvIndexPhotoManager getManager() {
         return invmanager;
     }
 
-    // Return all photos that satisfy the album condition
     public LinkedList<Photo> getPhotos() {
         BST<LinkedList<Photo>> photosBST = invmanager.getPhotos();
         LinkedList<Photo> resultPhotos = new LinkedList<Photo>();
-        numberOfComparisons = 0;
+        NbComps = 0;
 
         String[] tags;
         if (!condition.isEmpty()) {
@@ -47,7 +41,6 @@ public class InvAlbum {
                 LinkedList<Photo> tagPhotos = photosBST.retrieve();
 
                 if (i == 0) {
-                    // Copy all photos from first tag into resultPhotos
                     tagPhotos.findFirst();
                     do {
                         resultPhotos.insert(tagPhotos.retrieve());
@@ -73,18 +66,16 @@ public class InvAlbum {
         return resultPhotos;
     }
 
-    // Return the number of comparisons
     public int getNbComps() {
-        return numberOfComparisons;
+        return NbComps;
     }
 
-    // Check if a photo exists in a list based on its path
     private boolean containsPhoto(LinkedList<Photo> list, Photo targetPhoto) {
         if (list.empty()) return false;
 
         list.findFirst();
         do {
-            numberOfComparisons++;
+            NbComps++;
             if (list.retrieve().getPath().equalsIgnoreCase(targetPhoto.getPath())) {
                 return true;
             }
@@ -98,7 +89,6 @@ public class InvAlbum {
         return false;
     }
 
-    // Intersection: only keep photos present in both lists
     private LinkedList<Photo> intersect(LinkedList<Photo> list1, LinkedList<Photo> list2) {
         LinkedList<Photo> result = new LinkedList<Photo>();
 
@@ -121,7 +111,6 @@ public class InvAlbum {
         return result;
     }
 
-    // Union: insert only the photos from list2 not already in list1
     private LinkedList<Photo> union(LinkedList<Photo> list1, LinkedList<Photo> list2) {
         if (!list2.empty()) {
             list2.findFirst();
