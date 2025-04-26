@@ -1,3 +1,5 @@
+
+package Album;
 public class InvAlbum {
     private String name;
     private String condition;
@@ -12,122 +14,118 @@ public class InvAlbum {
         NbComps = 0;
     }
 
+    // Return the name of the album
     public String getName() {
         return name;
     }
 
+    // Return the condition associated with the album
     public String getCondition() {
         return condition;
     }
 
+    // Return the manager
     public InvIndexPhotoManager getManager() {
         return invmanager;
     }
 
+    // Return all photos that satisfy the album condition
     public LinkedList<Photo> getPhotos() {
         BST<LinkedList<Photo>> photosBST = invmanager.getPhotos();
-        LinkedList<Photo> resultPhotos = new LinkedList<Photo>();
+        LinkedList<Photo> Rphotos = new LinkedList<Photo>();
         NbComps = 0;
 
         String[] tags;
         if (!condition.isEmpty()) {
             tags = condition.split(" AND ");
         } else {
-            tags = photosBST.inOrder().split(" AND ");
+            String allKeys = photosBST.inOrder();
+            tags = allKeys.isEmpty() ? new String[0] : allKeys.split(" AND ");
         }
 
         for (int i = 0; i < tags.length; i++) {
             if (photosBST.findkey(tags[i])) {
-                LinkedList<Photo> tagPhotos = photosBST.retrieve();
-
+                LinkedList<Photo> photosWithTag = photosBST.retrieve();
                 if (i == 0) {
-                    tagPhotos.findFirst();
-                    do {
-                        resultPhotos.insert(tagPhotos.retrieve());
-                        if (!tagPhotos.last()) {
-                            tagPhotos.findNext();
-                        } else {
-                            break;
-                        }
-                    } while (true);
+                    Rphotos = copyPhotos(photosWithTag);
                 } else {
-                    if (!condition.isEmpty()) {
-                        resultPhotos = intersect(resultPhotos, tagPhotos);
-                    } else {
-                        resultPhotos = union(resultPhotos, tagPhotos);
-                    }
+                    if (!condition.isEmpty())
+                        Rphotos = intersection(Rphotos, photosWithTag);
+                    else
+                        Rphotos = union(Rphotos, photosWithTag);
                 }
             } else {
-                resultPhotos = new LinkedList<Photo>();
-                break;
+                return new LinkedList<Photo>(); // One tag not found = no match
             }
         }
 
-        return resultPhotos;
+        return Rphotos;
     }
 
+    // Return the number of tag comparisons used to find all photos of the album
     public int getNbComps() {
         return NbComps;
     }
 
-    private boolean containsPhoto(LinkedList<Photo> list, Photo targetPhoto) {
-        if (list.empty()) return false;
-
-        list.findFirst();
-        do {
-            NbComps++;
-            if (list.retrieve().getPath().equalsIgnoreCase(targetPhoto.getPath())) {
-                return true;
-            }
-            if (!list.last()) {
-                list.findNext();
-            } else {
-                break;
-            }
-        } while (true);
-
-        return false;
-    }
-
-    private LinkedList<Photo> intersect(LinkedList<Photo> list1, LinkedList<Photo> list2) {
+    // Helper to copy photos from one list to another
+    private LinkedList<Photo> copyPhotos(LinkedList<Photo> list) {
         LinkedList<Photo> result = new LinkedList<Photo>();
-
-        if (!list2.empty()) {
-            list2.findFirst();
-            do {
-                Photo current = list2.retrieve();
-                if (containsPhoto(list1, current)) {
-                    result.insert(current);
-                }
-
-                if (!list2.last()) {
-                    list2.findNext();
-                } else {
-                    break;
-                }
-            } while (true);
+        if (!list.empty()) {
+            list.findFirst();
+            while (true) {
+                result.insert(list.retrieve());
+                if (list.last()) break;
+                list.findNext();
+            }
         }
-
         return result;
     }
 
+    // Intersection: returns photos that exist in both lists
+    private LinkedList<Photo> intersection(LinkedList<Photo> list1, LinkedList<Photo> list2) {
+        LinkedList<Photo> result = new LinkedList<Photo>();
+        if (!list2.empty()) {
+            list2.findFirst();
+            while (true) {
+                Photo p2 = list2.retrieve();
+                if (containsPhoto(list1, p2.getPath())) {
+                    result.insert(p2);
+                }
+                if (list2.last()) break;
+                list2.findNext();
+            }
+        }
+        return result;
+    }
+
+    // Union: adds photos from list2 to list1 only if not already in list1
     private LinkedList<Photo> union(LinkedList<Photo> list1, LinkedList<Photo> list2) {
         if (!list2.empty()) {
             list2.findFirst();
-            do {
-                Photo current = list2.retrieve();
-                if (!containsPhoto(list1, current)) {
-                    list1.insert(current);
+            while (true) {
+                Photo p2 = list2.retrieve();
+                if (!containsPhoto(list1, p2.getPath())) {
+                    list1.insert(p2);
                 }
-
-                if (!list2.last()) {
-                    list2.findNext();
-                } else {
-                    break;
-                }
-            } while (true);
+                if (list2.last()) break;
+                list2.findNext();
+            }
         }
-
         return list1;
+    }
+
+    // Helper to check if a photo with a path exists in the list
+    private boolean containsPhoto(LinkedList<Photo> list, String path) {
+        if (list.empty()) return false;
+        list.findFirst();
+        while (true) {
+            NbComps++;
+            if (list.retrieve().getPath().equalsIgnoreCase(path)) {
+                return true;
+            }
+            if (list.last()) break;
+            list.findNext();
+        }
+        return false;
     }
 }
