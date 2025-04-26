@@ -1,37 +1,41 @@
+
+package Album;
+// PhotoManager.java
 public class PhotoManager {
-    
-    LinkedList<Photo> photos;
+
+    private LinkedList<Photo> photos;
 
     // Constructor
     public PhotoManager() {
         photos = new LinkedList<Photo>();
     }
-    
+
     // Add a photo
     public void addPhoto(Photo p) {
-        if (!IsPhototAvailable(p.getPath(), photos)) {
+        if (!isPhotoAvailable(p.getPath())) {
             photos.insert(p);
         }
     }
-    
-    private boolean IsPhototAvailable(String p, LinkedList<Photo> List) {
-        if (List.empty()) 
-            return false;
 
-        List.findFirst();
-        do {
-            if (List.retrieve().getPath().equalsIgnoreCase(p))
+    // Check if a photo with the given path already exists
+    private boolean isPhotoAvailable(String path) {
+        if (photos.empty()) return false;
+
+        photos.findFirst();
+        while (true) {
+            if (photos.retrieve().getPath().equalsIgnoreCase(path)) {
                 return true;
-            List.findNext();
-        } while (!List.last());
+            }
+            if (photos.last()) break;
+            photos.findNext();
+        }
 
-        return List.retrieve().getPath().equalsIgnoreCase(p);
+        return false;
     }
 
     // Delete a photo
     public void deletePhoto(String path) {
-        if (photos.empty() || !IsPhototAvailable(path, photos))
-            return;
+        if (photos.empty()) return;
 
         photos.findFirst();
         while (true) {
