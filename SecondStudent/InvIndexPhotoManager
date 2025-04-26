@@ -1,70 +1,75 @@
-public class InvIndexPhotoManager {
 
-    BST<LinkedList<Photo>> Inverted_Index;
+package Album;
+
+public class InvIndexPhotoManager {
+    private BST<LinkedList<Photo>> invertedIndex;
 
     // Constructor
     public InvIndexPhotoManager() {
-        Inverted_Index = new BST<LinkedList<Photo>>();
+        invertedIndex = new BST<LinkedList<Photo>>();
     }
 
     // Add a photo
     public void addPhoto(Photo p) {
         LinkedList<String> tags = p.getTags();
-        if (!tags.empty()) {
-            tags.findFirst();
-            do {
-                String tag = tags.retrieve();
-                LinkedList<Photo> photos_inverted;
+        if (tags.empty()) return;
 
-                if (Inverted_Index.findkey(tag)) {
-                    photos_inverted = Inverted_Index.retrieve();
-                } else {
-                    photos_inverted = new LinkedList<Photo>();
-                }
-
-                photos_inverted.insert(p);
-                Inverted_Index.update(tag, photos_inverted);
-
-                tags.findNext();
-            } while (!tags.last());
+        tags.findFirst();
+        while (true) {
+            String tag = tags.retrieve();
+            if (invertedIndex.findkey(tag)) {
+                LinkedList<Photo> photosList = invertedIndex.retrieve();
+                photosList.insert(p);
+                invertedIndex.update(tag, photosList);
+            } else {
+                LinkedList<Photo> newList = new LinkedList<Photo>();
+                newList.insert(p);
+                invertedIndex.insert(tag, newList);
+            }
+            if (tags.last()) break;
+            tags.findNext();
         }
     }
 
     // Delete a photo
     public void deletePhoto(String path) {
-        String AllTags = Inverted_Index.inOrder();
-        String[] tags = AllTags.split(" AND ");
+        String allTags = invertedIndex.inOrder();
+        if (allTags.isEmpty()) return;
 
+        String[] tags = allTags.split(" AND ");
         for (String tag : tags) {
-            if (Inverted_Index.findkey(tag)) {
-                LinkedList<Photo> photos_inverted = Inverted_Index.retrieve();
-                photos_inverted.findFirst();
-
+            if (invertedIndex.findkey(tag)) {
+                LinkedList<Photo> photosList = invertedIndex.retrieve();
                 boolean found = false;
-                while (!found && !photos_inverted.last()) {
-                    if (photos_inverted.retrieve().getPath().equalsIgnoreCase(path)) {
-                        photos_inverted.remove();
-                        found = true;
-                    } else {
-                        photos_inverted.findNext();
+
+                if (!photosList.empty()) {
+                    photosList.findFirst();
+                    while (true) {
+                        if (photosList.retrieve().getPath().equalsIgnoreCase(path)) {
+                            photosList.remove();
+                            found = true;
+                            break;
+                        }
+                        if (photosList.last()) break;
+                        photosList.findNext();
                     }
                 }
 
-                if (!found && photos_inverted.retrieve().getPath().equalsIgnoreCase(path)) {
-                    photos_inverted.remove();
-                }
-
-                if (photos_inverted.getSize() == 0) {
-                    Inverted_Index.removeKey(tag);
-                } else {
-                    Inverted_Index.update(tag, photos_inverted);
+                // Update or remove the tag from the index
+                if (photosList.getSize() == 0) {
+                    invertedIndex.removeKey(tag);
+                } else if (found) {
+                    invertedIndex.update(tag, photosList);
                 }
             }
         }
     }
 
     // Return the inverted index of all managed photos
-    public BST<LinkedList<Photo>> getPhotos() {
-        return Inverted_Index;
+    public BST<LinkedList<Photo>> getPhoto() {
+        return invertedIndex;
     }
+
+    BST<LinkedList<Photo>> getPhotos() {
+        throw new UnsupportedOperationException("Not supported yet.");  }
 }
